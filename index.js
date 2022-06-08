@@ -38,28 +38,26 @@ const colorCodes = {
   4: "#be1e2d",
 };
 
-const generateLevel = (btnNum, offence_tier, offence_points) => {
+const generateLevel = (ind, o_tier, c_tier) => {
   return {
-    btnNum: btnNum,
-    offence_tier: Number(offence_tier),
-    offence_points: Number(offence_points),
+    ind: ind,
+    o_tier: Number(o_tier),
+    c_tier: Number(c_tier),
     add_tier: function () {
-      this.offence_points++;
+      this.c_tier++;
     },
   };
 };
 const createLevels = () => {
   return Object.keys(tierPoints).map((tier) =>
-    Object.keys(svgPaths).map((btnNum) => generateLevel(btnNum, tier, tier))
+    Object.keys(svgPaths).map((ind) => generateLevel(ind, tier, tier))
   );
 };
 
 let levels = createLevels().flat();
 
-const getObject = (btnNum, tier) => {
-  return levels.find(
-    (level) => level.btnNum == btnNum && level.offence_tier == tier
-  );
+const getObject = (ind, tier) => {
+  return levels.find((level) => level.ind == ind && level.o_tier == tier);
 };
 
 const updateButtons = (form) => {
@@ -76,10 +74,8 @@ const updateButtons = (form) => {
   buttons.forEach((button) => {
     const classes = button.classList;
     const obj = getObject(classes[1][1], classes[0][1]);
-    button.style.borderColor = colorCodes[`${obj.offence_points}`];
-    button.nextSibling.textContent = `Add Points: ${
-      tierPoints[obj.offence_points]
-    }`;
+    button.style.borderColor = colorCodes[`${obj.c_tier}`];
+    button.nextSibling.textContent = `Add Points: ${tierPoints[obj.c_tier]}`;
   });
 };
 
@@ -98,18 +94,18 @@ const getStats = (obj, offense) => {
   const points = document.createElement("div");
   points.style.fontWeight = "bold";
   const name = document.createElement("div");
-  const offencePoints = document.createElement("div");
+  const cPoints = document.createElement("div");
   points.classList.add("t_points");
   points.textContent = `Current Zap Points: ${totalPoints}`;
   name.textContent = `Last offense committed: ${offense}`;
-  offencePoints.textContent = `${offense}'s tier moved: ${
-    tierPoints[obj.offence_points]
-  } => ${tierPoints[obj.offence_points + 1]}`;
-  return [points, name, offencePoints];
+  cPoints.textContent = `${offense}'s tier moved: ${
+    tierPoints[obj.c_tier]
+  } => ${tierPoints[obj.c_tier + 1]}`;
+  return [points, name, cPoints];
 };
 
 const updateStats = (obj, offense) => {
-  totalPoints += tierPoints[obj.offence_points];
+  totalPoints += tierPoints[obj.c_tier];
   const displayStats = document.querySelector(".zapPointsLabel");
   const stats = getStats(obj, offense);
   displayStats.textContent = "";
@@ -142,15 +138,13 @@ const setImages = (cellImgs) => {
 };
 
 const updateChart = (obj) => {
-  const cell = document.querySelector(
-    `#t${obj.offence_tier}${obj.offence_points}`
-  );
+  const cell = document.querySelector(`#t${obj.o_tier}${obj.c_tier}`);
   const div = document.createElement("div");
   div.classList.add("img-container");
-  div.style.backgroundImage = `url(${svgPaths[obj.offence_points]})`;
+  div.style.backgroundImage = `url(${svgPaths[obj.c_tier]})`;
   cell.appendChild(div);
   const cellImgs = document.querySelectorAll(
-    `#t${obj.offence_tier}${obj.offence_points} > div`
+    `#t${obj.o_tier}${obj.c_tier} > div`
   );
   const setImgs = setImages(cellImgs);
   cell.textContent = "";
@@ -175,9 +169,9 @@ forms.forEach((eachForm) => {
   eachForm.addEventListener("click", (e) => {
     if (e.target.tagName === "BUTTON") {
       const classes = e.target.classList;
-      const btnNum = classes[1][1];
+      const ind = classes[1][1];
       const tier = Number(classes[0].slice(-1));
-      const obj = getObject(btnNum, tier);
+      const obj = getObject(ind, tier);
       updateChart(obj);
       updateStats(obj, e.target.textContent);
       checkBan();
